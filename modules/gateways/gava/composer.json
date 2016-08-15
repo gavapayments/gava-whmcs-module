@@ -1,0 +1,5 @@
+{
+    "require": {
+        "ihatehandles/gava-php-client": "^0.0.1"
+    }
+}
