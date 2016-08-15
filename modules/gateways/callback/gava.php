@@ -25,12 +25,10 @@ if (!$gatewayParams['type']) {
     die("Module Not Activated");
 }
 
-if (!isset($_POST['reference'])) exit();
-
 require_once __DIR__ . '/../gava/vendor/autoload.php';
 
-$apiUrl = $params['apiUrl'];
-$secret = $params['secret'];
+$apiUrl = $gatewayParams['apiUrl'];
+$secret = $gatewayParams['secret'];
 $gava = new Gava\Gava($apiUrl, $secret);
 
 $checkout = $gava->processWebhook();
