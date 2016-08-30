@@ -34,7 +34,7 @@ $gava = new Gava\Gava($apiUrl, $secret);
 $checkout = $gava->processWebhook();
 
 $invoiceId = $checkout->reference;
-$transactionId = $checkout->id;
+$transactionId = $checkout->checkoutId;
 
 //Because the Gava PHP Client would have thrown if the chekcout was not paid
 $transactionStatus = 'Paid';
