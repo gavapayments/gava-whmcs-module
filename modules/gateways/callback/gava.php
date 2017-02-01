@@ -89,7 +89,7 @@ logTransaction($gatewayParams['name'], (array) $checkout, $transactionStatus);
  * @param float $paymentAmount   Amount paid (defaults to full balance)
  * @param float $paymentFee      Payment fee (optional)
  * @param string $gatewayModule  Gateway module name
- */
+*/
 addInvoicePayment(
     $invoiceId,
     $transactionId,
@@ -97,19 +97,27 @@ addInvoicePayment(
     null,
     $gatewayModuleName
 );
-
+ 
 // Fetch invoice details to get the client id and required amount
-if ($invoice = gava_get_invoice($invoiceid)) {
+if ($invoice = gava_get_invoice($invoiceId)) {
 
 	$invoiceTotal = (float) $invoice->total;
 
 	// If there's a difference between the invoice total and the paid amount
-	if (!$gava_amounts_equal($invoiceTotal, $transactionAmount) {
+	if (!gava_amounts_equal($invoiceTotal, $transactionAmount)) {
 
 		$transactionAmount = number_format($transactionAmount, 2, '.', '');
 		$invoiceTotal = number_format($invoiceTotal, 2, '.', '');
 
 		$overpayment = number_format($transactionAmount - $invoiceTotal, 2, '.', '');
+
+		logActivity(sprintf(
+			'GAVA [%s]: Amounts not equal for invoice id %s, total %s. The user has paid %s',
+			$transactionId,
+			$invoiceId,
+			$invoiceTotal,
+			$transactionAmount
+		));
 
 		// And if there's been a reasonable overpayment indeed
 		if ((float) $overpayment > 0.01) {
@@ -125,7 +133,7 @@ function gava_get_invoice($id)
 {
 	$command = 'GetInvoice';
 	$postData = array(
-	    'invoiceid' => $invoiceId,
+	    'invoiceid' => $id,
 	);
 	$adminUsername = 'admin';
 
@@ -138,7 +146,7 @@ function gava_get_invoice($id)
 
 function gava_amounts_equal($a, $b)
 {
-	if (abs(($-$b)/$b) < 0.00001) return true;
+	if ( abs( ($a - $b) / $b ) < 0.00001 ) return true;
 
 	return false;
 }
@@ -154,5 +162,5 @@ function gava_add_user_credit($userId, $amount, $invoiceId)
 		"amount" => $amount,
 	];
 
-	return localAPI($command,$values,$adminuser);
+	return localAPI($command, $postData, $adminuser);
 }
