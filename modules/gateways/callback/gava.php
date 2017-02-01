@@ -77,6 +77,8 @@ checkCbTransID($transactionId);
  */
 logTransaction($gatewayParams['name'], (array) $checkout, $transactionStatus);
 
+// Use the approval code as the transaction id
+
 /**
  * Add Invoice Payment.
  *
@@ -95,3 +97,62 @@ addInvoicePayment(
     null,
     $gatewayModuleName
 );
+
+// Fetch invoice details to get the client id and required amount
+if ($invoice = gava_get_invoice($invoiceid)) {
+
+	$invoiceTotal = (float) $invoice->total;
+
+	// If there's a difference between the invoice total and the paid amount
+	if (!$gava_amounts_equal($invoiceTotal, $transactionAmount) {
+
+		$transactionAmount = number_format($transactionAmount, 2, '.', '');
+		$invoiceTotal = number_format($invoiceTotal, 2, '.', '');
+
+		$overpayment = number_format($transactionAmount - $invoiceTotal, 2, '.', '');
+
+		// And if there's been a reasonable overpayment indeed
+		if ((float) $overpayment > 0.01) {
+
+			gava_add_user_credit($invoice->userid, $overpayment, $invoiceId);
+
+		}
+	}
+
+}
+
+function gava_get_invoice($id)
+{
+	$command = 'GetInvoice';
+	$postData = array(
+	    'invoiceid' => $invoiceId,
+	);
+	$adminUsername = 'admin';
+
+	$getInvoiceResults = localAPI($command, $postData, $adminUsername);
+
+	if ($getInvoiceResults->result !== 'success') return false;
+
+	return $getInvoiceResults;
+}
+
+function gava_amounts_equal($a, $b)
+{
+	if (abs(($-$b)/$b) < 0.00001) return true;
+
+	return false;
+}
+
+function gava_add_user_credit($userId, $amount, $invoiceId)
+{
+	$command = "addcredit";
+	$adminuser = "admin";
+
+	$postData = [
+		"clientid" => $userId,
+		"description" => "Gava over-payment on invoice " . $invoiceId,
+		"amount" => $amount,
+	];
+
+	return localAPI($command,$values,$adminuser);
+}
